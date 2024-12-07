@@ -71,12 +71,9 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
     public fun mint(_account: &signer, recipient: &signer, amount: u64): option::Option<bool> acquires KopfToken {
         assert!(amount > 0, EINVALID_AMOUNT); // Amount must be positive
         assert!(signer::address_of(recipient) != @0x1, EINVALID_RECIPIENT); // Recipient cannot be zero address
+        let token = borrow_global_mut<KopfToken>(signer::address_of(_account));
+        assert!(signer::address_of(_account) == token.owner, 1); // Check owner
 
-        
-        {
-            let token = borrow_global_mut<KopfToken>(signer::address_of(_account));
-            assert!(signer::address_of(_account) == token.owner, 1); // Check owner
-        };
 
         // Initialize recipient's KopfToken resource if not exists
         let recipient_address = signer::address_of(recipient); 
@@ -134,7 +131,7 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
     }
 
     // Burn tokens
-    public fun burn(account: &signer, amount: u64) acquires KopfToken {
+    public fun burn(account: &signer, amount: u64): option::Option<bool> acquires KopfToken {
         assert!(amount > 0, EINVALID_AMOUNT);
 
         let addr = signer::address_of(account);
@@ -143,17 +140,18 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
         // Authorization check
         assert!(token.owner == addr, 1);
 
+        // Check sufficient total supply
+        if (token.total_supply < amount) {
+            abort(EINSUFFICIENT_SUPPLY);
+        };
+
         // Check sufficient balance
         assert!(token.value >= amount, EINSUFFICIENT_BALANCE);
 
         // Update balance
         token.value = token.value - amount;
 
-        // Check and update total supply
-        if (token.total_supply < amount) {
-            abort(EINSUFFICIENT_SUPPLY);
-        };
-
+        //update total supply
         token.total_supply = token.total_supply - amount;
 
         // Emit burn event
@@ -161,26 +159,26 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
             account: addr,
             amount,
         };
+        let event_copy = copy event;
         event::emit(event);
-        vector::push_back(&mut token.burn_events, event);
+        vector::push_back(&mut token.burn_events, event_copy);
+
+        option::some(true)
     } 
 
 
     // Transfer tokens
-    public fun transfer(sender: &signer, recipient: &signer, amount: u64) acquires KopfToken {
+    public fun transfer(sender: &signer, recipient: &signer, amount: u64): option::Option<bool> acquires KopfToken {
         // Validate transfer amount
         assert!(amount > 0, EINVALID_AMOUNT); // Amount must be positive
+        let recipient_address = signer::address_of(recipient);
         assert!(signer::address_of(recipient) != @0x1, EINVALID_RECIPIENT); // Recipient cannot be zero address
 
-        let recipient_address = signer::address_of(recipient);
         if (!exists<KopfToken>(recipient_address)) {
             0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfToken::initialize(recipient, 100, b"MyToken", b"MTK");
         };
 
-        // Recipient existence check
-        assert!(exists<KopfToken>(signer::address_of(recipient)), 1);
-
-        // Initialize sender's KopfToken resource if not exists
+        //creating a new KopfToken resource for the sender, using move_to
         if (!exists<KopfToken>(signer::address_of(sender))) {
             move_to(sender, KopfToken {
                 id: 0,
@@ -217,7 +215,7 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
         };
         event::emit(event);
         vector::push_back(&mut sender_token.transfer_events, event);
-        
+        option::some(true)
     }
 
 
@@ -285,6 +283,6 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
     }
 
     public fun get_transfer_event_amount(event: TransferEvent): u64 {
-        event.amount
+    event.amount
     }
 }
