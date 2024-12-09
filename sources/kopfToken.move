@@ -51,7 +51,7 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
     public fun initialize(account: &signer, max_supply: u64, token_name: vector<u8>, token_symbol: vector<u8>) {
         assert!(max_supply > 0, EINVALID_MAX_SUPPLY); // Validate max supply
         assert!(vector::length(&token_symbol) > 0, EINVALID_SYMBOL); // Validate symbol
-
+        assert!(!exists<KopfToken>(signer::address_of(account)), EINVALID_RECIPIENT); // Check for existing token resource
         let token = KopfToken {
             id: 0,
             value: 0,
@@ -217,7 +217,6 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
         vector::push_back(&mut sender_token.transfer_events, event);
         option::some(true)
     }
-
 
     // Get user balance
     public fun get_balance(user: address): option::Option<u64> acquires KopfToken {
