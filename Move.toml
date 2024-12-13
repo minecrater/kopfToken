@@ -1,24 +1,15 @@
 [package]
 name = "kopfCoinProject"
 version = "1.0.0"
-authors = ["https://github.com/minecrater"]
-description = "the creation of the almighty kopfToken for Aptos"
-repository = "https://github.com/minecrater"
-license = "Apache-2.0"
+authors = []
 
 [addresses]
-kopfCoinProject = "0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca"
+
+[dev-addresses]
 
 [dependencies.AptosFramework]
 git = "https://github.com/aptos-labs/aptos-framework.git"
-rev = "devnet"
+rev = "mainnet"
 subdir = "aptos-framework"
 
-[[test]]
-name = "test_KopfToken"
-path = "tests/test.move"
-
-[dependencies.AptosStdlib]
-git = "https://github.com/aptos-labs/aptos-framework.git"
-rev = "devnet"
-subdir = "aptos-stdlib"
+[dev-dependencies]
