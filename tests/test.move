@@ -1,12 +1,12 @@
-module 0x267a963667e052710cd401a169148191542789cb7b807d343f54b1873b9eac0b::KopfKoinTest {
+module 0x68729baa1d029ccd3fa1c53a445e83ad05add47d76b5b04d4ff15f9de56952fa::KopfKoinTest {
     //use aptos_framework::signer;
-    use 0x267a963667e052710cd401a169148191542789cb7b807d343f54b1873b9eac0b::KopfKoin;
+    use 0x68729baa1d029ccd3fa1c53a445e83ad05add47d76b5b04d4ff15f9de56952fa::KopfKoin;
     use std::account;
     use std::vector;
     use std::signer;
     //use std::event;
     //use std::option;
-    //use 0x267a963667e052710cd401a169148191542789cb7b807d343f54b1873b9eac0b::KopfKoin::BurnEvent;
+    //use 0x68729baa1d029ccd3fa1c53a445e83ad05add47d76b5b04d4ff15f9de56952fa::KopfKoin::BurnEvent;
 
     #[test]
     fun test_initialize() {
@@ -367,7 +367,7 @@ module 0x267a963667e052710cd401a169148191542789cb7b807d343f54b1873b9eac0b::KopfK
         // Verify mint event emission
         let events = KopfKoin::get_mint_events(signer::address_of(&recipient));
         assert!(vector::length(&events) == 1, 0);
-        let mint_event: 0x267a963667e052710cd401a169148191542789cb7b807d343f54b1873b9eac0b::KopfKoin::MintEvent = vector::pop_back(&mut events);
+        let mint_event: 0x68729baa1d029ccd3fa1c53a445e83ad05add47d76b5b04d4ff15f9de56952fa::KopfKoin::MintEvent = vector::pop_back(&mut events);
         
         // Verify recipient's balance increase
         let updated_balance = KopfKoin::get_balance(signer::address_of(&recipient));

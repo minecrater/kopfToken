@@ -1,4 +1,4 @@
-module 0x267a963667e052710cd401a169148191542789cb7b807d343f54b1873b9eac0b::KopfKoin {
+module 0x68729baa1d029ccd3fa1c53a445e83ad05add47d76b5b04d4ff15f9de56952fa::KopfKoin {
     use std::signer;
     use std::vector;
     use std::event;
