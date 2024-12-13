@@ -1,15 +1,17 @@
 [package]
-name = "kopfCoinProject"
+name = "KopfKoin"
 version = "1.0.0"
 authors = []
 
 [addresses]
+KopfKoin = "0x267a963667e052710cd401a169148191542789cb7b807d343f54b1873b9eac0b"
+
 
 [dev-addresses]
-
+KopfKoin = "0x267a963667e052710cd401a169148191542789cb7b807d343f54b1873b9eac0b"
 [dependencies.AptosFramework]
 git = "https://github.com/aptos-labs/aptos-framework.git"
-rev = "mainnet"
+rev = "devnet"
 subdir = "aptos-framework"
 
 [dev-dependencies]

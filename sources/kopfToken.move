@@ -1,4 +1,4 @@
-module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfToken {
+module 0x267a963667e052710cd401a169148191542789cb7b807d343f54b1873b9eac0b::KopfKoin {
     use std::signer;
     use std::vector;
     use std::event;
@@ -19,7 +19,7 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
     const ERESOURCE_NOT_FOUND: u64 = 1009;
     const ERESOURCE_ALREADY_EXISTS: u64 = 1010;
 
-    struct KopfToken has key, store, drop {
+    struct KopfKoin has key, store, drop {
         id: u64,
         value: u64,
         max_supply: u64,
@@ -56,8 +56,8 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
     public entry fun initialize(account: &signer, max_supply: u64, token_name: vector<u8>, token_symbol: vector<u8>) {
         assert!(max_supply > 0, EINVALID_MAX_SUPPLY); // Validate max supply
         assert!(vector::length(&token_symbol) > 0, EINVALID_SYMBOL); // Validate symbol
-        assert!(!exists<KopfToken>(signer::address_of(account)), EINVALID_RECIPIENT); // Check for existing token resource
-        let token = KopfToken {
+        assert!(!exists<KopfKoin>(signer::address_of(account)), EINVALID_RECIPIENT); // Check for existing token resource
+        let token = KopfKoin {
             id: 0,
             value: 0,
             max_supply,
@@ -76,16 +76,16 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
     public entry fun initialize_recipient(account: &signer){
         let recipient_address = signer::address_of(account);
 
-        // Ensure the recipient does not already have a KopfToken resource
-        assert!(!exists<KopfToken>(recipient_address), ERESOURCE_ALREADY_EXISTS);
+        // Ensure the recipient does not already have a KopfKoin resource
+        assert!(!exists<KopfKoin>(recipient_address), ERESOURCE_ALREADY_EXISTS);
 
-        // Create a new KopfToken resource for the recipient
-        move_to(account, KopfToken {
+        // Create a new KopfKoin resource for the recipient
+        move_to(account, KopfKoin {
             id: 0,
             value: 0,
             max_supply: 0, // Placeholder; customize if needed
             total_supply: 0,
-            token_name: b"KopfToken",
+            token_name: b"KopfKoin",
             token_symbol: b"KOPF",
             owner: recipient_address,
             mint_events: vector::empty(),
@@ -96,12 +96,12 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
 
 
     // Mint tokens
-    public entry fun mint(account: &signer, recipient: address, amount: u64) acquires KopfToken {
+    public fun mint(account: &signer, recipient: address, amount: u64) acquires KopfKoin {
         let token_owner = signer::address_of(account);
 
-        // Check if sender is token owner
+        // Check if minter is token owner
         {
-            let token = borrow_global_mut<KopfToken>(token_owner);
+            let token = borrow_global_mut<KopfKoin>(token_owner);
             assert!(token.owner == token_owner, EINVALID_OWNER);
 
             if (recipient == @0x0) {
@@ -115,13 +115,13 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
         };
 
         // Initialize recipient's token resource if needed
-        if (!exists<KopfToken>(recipient)) {
+        if (!exists<KopfKoin>(recipient)) {
             initialize_recipient(account);
         };
 
         // Add minted tokens to recipient and log event
         {
-            let recipient_token = borrow_global_mut<KopfToken>(recipient);
+            let recipient_token = borrow_global_mut<KopfKoin>(recipient);
             let event = MintEvent {
                 recipient,
                 amount,
@@ -134,14 +134,12 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
 
 
 
-
-
     // Burn tokens
-    public entry fun burn(account: &signer, amount: u64) acquires KopfToken {
+    public entry fun burn(account: &signer, amount: u64) acquires KopfKoin {
         assert!(amount > 0, EINVALID_AMOUNT); // Amount must be positive
 
         let addr = signer::address_of(account);
-        let token = borrow_global_mut<KopfToken>(addr);
+        let token = borrow_global_mut<KopfKoin>(addr);
 
         // Authorization check
         assert!(token.owner == addr, 1);
@@ -172,7 +170,7 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
 
 
     // Transfer tokens
-    public entry fun transfer(sender: &signer, recipient: &signer, amount: u64) acquires KopfToken {
+    public entry fun transfer(sender: &signer, recipient: &signer, amount: u64) acquires KopfKoin {
         let sender_address = signer::address_of(sender);
         let recipient_address = signer::address_of(recipient);
 
@@ -186,12 +184,12 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
         };
 
         {
-            let sender_token = borrow_global_mut<KopfToken>(sender_address);
+            let sender_token = borrow_global_mut<KopfKoin>(sender_address);
             assert!(sender_token.value >= amount, EINSUFFICIENT_BALANCE);
             sender_token.value = sender_token.value - amount;
         }; // sender_token goes out of scope here
 
-        let recipient_token = borrow_global_mut<KopfToken>(recipient_address);
+        let recipient_token = borrow_global_mut<KopfKoin>(recipient_address);
         recipient_token.value = recipient_token.value + amount;
 
         // Log transfer event
@@ -206,48 +204,48 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
 
 
     // Get user balance
-    public fun get_balance(user: address): option::Option<u64> acquires KopfToken {
-        if (!exists<KopfToken>(user)) {
+    public fun get_balance(user: address): option::Option<u64> acquires KopfKoin {
+        if (!exists<KopfKoin>(user)) {
             abort(EINVALID_RECIPIENT) // Token not initialized
         };
-        let token = borrow_global<KopfToken>(user);
+        let token = borrow_global<KopfKoin>(user);
         option::some(token.value)
     }
 
-    public fun get_name_by_address(account: address): vector<u8> acquires KopfToken {
-        let token = borrow_global<KopfToken>(account);
-        // Assuming token_name is stored in KopfToken struct
+    public fun get_name_by_address(account: address): vector<u8> acquires KopfKoin {
+        let token = borrow_global<KopfKoin>(account);
+        // Assuming token_name is stored in KopfKoin struct
         token.token_name
     }
 
-    public fun get_symbol_by_address(account: address): vector<u8> acquires KopfToken {
-        let token = borrow_global<KopfToken>(account);
-        // Assuming token_symbol is stored in KopfToken struct
+    public fun get_symbol_by_address(account: address): vector<u8> acquires KopfKoin {
+        let token = borrow_global<KopfKoin>(account);
+        // Assuming token_symbol is stored in KopfKoin struct
         token.token_symbol
     }
 
-    public fun get_max_supply(account: &signer): u64 acquires KopfToken {
-        let token = borrow_global<KopfToken>(signer::address_of(account));
+    public fun get_max_supply(account: &signer): u64 acquires KopfKoin {
+        let token = borrow_global<KopfKoin>(signer::address_of(account));
         token.max_supply
     }
 
-    public fun get_total_supply(recipient: address): u64 acquires KopfToken {
-        let token = borrow_global<KopfToken>(recipient);
+    public fun get_total_supply(recipient: address): u64 acquires KopfKoin {
+        let token = borrow_global<KopfKoin>(recipient);
         token.total_supply
     }
 
-    public fun get_burn_events(account: address): vector<BurnEvent> acquires KopfToken {
-        let token = borrow_global<KopfToken>(account);
+    public fun get_burn_events(account: address): vector<BurnEvent> acquires KopfKoin {
+        let token = borrow_global<KopfKoin>(account);
         token.burn_events
     }
 
-    public fun get_mint_events(account: address): vector<MintEvent> acquires KopfToken {
-        let token = borrow_global<KopfToken>(account);
+    public fun get_mint_events(account: address): vector<MintEvent> acquires KopfKoin {
+        let token = borrow_global<KopfKoin>(account);
         token.mint_events
     }
 
-    public fun get_transfer_events(account: address): vector<TransferEvent> acquires KopfToken {
-        let token = borrow_global<KopfToken>(account);
+    public fun get_transfer_events(account: address): vector<TransferEvent> acquires KopfKoin {
+        let token = borrow_global<KopfKoin>(account);
         token.transfer_events
     }
 
@@ -272,9 +270,10 @@ module 0x200e2ea1904de5eed8e653399905fb9b657c8218e3198257d29138883eb9caca::KopfT
     }
 
 
-    fun has_kopf_token(account: address): bool {
-        exists<KopfToken>(account)
+    public fun has_kopf_token(account: address): bool {
+        exists<KopfKoin>(account)
     }
 
-  
+
+
 }
